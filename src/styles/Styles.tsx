@@ -67,7 +67,6 @@ export const MovieDetailsScreenStyles = StyleSheet.create({
     fontStyle: 'italic',
   },
   image: {
-    resizeMode: 'cover',
     position: 'absolute',
     width: '100%',
   },

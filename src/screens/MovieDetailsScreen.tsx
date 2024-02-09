@@ -23,7 +23,7 @@ export default function MovieDetailsScreen({
     }
   };
 
-  const poster_url = `https://image.tmdb.org/t/p/original${movie.poster_path}`;
+  const poster_url = `https://image.tmdb.org/t/p/original${movie.backdrop_path}`;
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollview}>
@@ -56,7 +56,7 @@ export default function MovieDetailsScreen({
             uri: poster_url,
           }}
           resizeMode="cover"
-          style={[styles.image, {height: window_height * 0.8}]}
+          style={[styles.image, {height: window_height * 0.4}]}
         />
       </ScrollView>
     </View>
