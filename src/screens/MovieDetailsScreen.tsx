@@ -13,6 +13,13 @@ export default function MovieDetailsScreen({
 }: DetailsScreenNavigationProp) {
   const movie: Movie = route.params.movie;
 
+  /**
+   * A helper function to set the color of the rating text based on its value.
+   *
+   * @param {number} rating - The rating for the current movie.
+   *
+   * @returns {Color String} A hex value for the color of the Text.
+   */
   const getRatingColor = (rating: number) => {
     if (rating < 4.0) {
       return '#F66';
