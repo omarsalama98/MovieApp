@@ -1,35 +1,75 @@
 import React, {useState, useEffect} from 'react';
-import {FlatList, Image, SafeAreaView, Text} from 'react-native';
+import {FlatList, Image, Modal, SafeAreaView, Text} from 'react-native';
 import {Movie, MoviesScreenNavigationProp} from '../utils/Types';
 import {MoviesScreenStyles as styles} from '../styles/Styles';
 import {TouchableOpacity} from 'react-native-gesture-handler';
+import NetInfo from '@react-native-community/netinfo';
+import Paginator from '../components/Paginator';
+import {fetchMovies} from '../utils/APIHelper';
 
 export default function MoviesScreen({navigation}: MoviesScreenNavigationProp) {
   const [movies, setMovies] = useState<Movie[]>();
+  const [api_error, setAPIError] = useState<string>();
+  const [current_page, setCurrentPage] = useState<number>(1);
+  const [is_offline, setIsOffline] = useState<boolean>(false);
+
+  NetInfo.addEventListener(networkState => {
+    setIsOffline(networkState.isConnected === false);
+  });
 
   useEffect(() => {
-    fetchMovies();
+    fetchMovies()
+      .then(result => {
+        if (typeof result === 'string' || result === undefined) {
+          // There was an error
+          setAPIError(result ?? 'Error in data fetch');
+        } else {
+          setMovies(result);
+        }
+      })
+      .catch(e => {
+        setAPIError(e);
+      });
   }, []);
 
-  const fetchMovies = () => {
-    const options = {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-        Authorization:
-          'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1NmQzYTkzNDk3Y2M4ZjYwMmRlYmMwM2E1YWRkYTI3NiIsInN1YiI6IjY1YzM4Nzc2OGUyZTAwMDE4M2E2NWViOSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.DimQyXeLyO7eRW4M-2NuT2xZHdzt7gEokjOPaMX3t7w',
-      },
-    };
-
-    fetch('https://api.themoviedb.org/3/discover/movie', options)
-      .then(response => response.json())
-      .then(response => setMovies(response.results))
-      .catch(err => console.error(err));
+  const fetchNextPage = () => {
+    fetchMovies(current_page + 1).then(result => {
+      if (typeof result === 'string' || result === undefined) {
+        setAPIError(result ?? 'Error in data fetch');
+      } else {
+        setMovies(result);
+        setCurrentPage(current_page + 1);
+      }
+    });
   };
-  console.log(movies?.at(0)?.backdrop_path);
+
+  const fetchPreviousPage = () => {
+    fetchMovies(current_page - 1)?.then(result => {
+      if (typeof result === 'string' || result === undefined) {
+        setAPIError(result ?? 'Error in data fetch');
+      } else {
+        setMovies(result);
+        setCurrentPage(current_page - 1);
+      }
+    });
+  };
 
   return (
     <SafeAreaView>
+      <Modal
+        visible={is_offline || api_error !== undefined}
+        style={{
+          backgroundColor: 'white',
+          height: '50%',
+          width: '80%',
+          alignSelf: 'center',
+        }}>
+        <Text>
+          {is_offline
+            ? 'You are Offline, please check your connection'
+            : api_error}
+        </Text>
+      </Modal>
       <FlatList
         data={movies}
         renderItem={({item}) => {
@@ -41,13 +81,20 @@ export default function MoviesScreen({navigation}: MoviesScreenNavigationProp) {
                 source={{
                   uri: `https://image.tmdb.org/t/p/original${item.backdrop_path}`,
                 }}
-                height={200}
+                height={220}
                 style={styles.image}
               />
               <Text style={styles.title}>{item.title}</Text>
             </TouchableOpacity>
           );
         }}
+      />
+      <Paginator
+        current_page={current_page}
+        hasNext={is_offline === false}
+        hasPrevious={current_page > 1}
+        onNextPressed={fetchNextPage}
+        onPreviousPressed={fetchPreviousPage}
       />
     </SafeAreaView>
   );
