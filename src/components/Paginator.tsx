@@ -18,13 +18,17 @@ export default function Paginator(props: {
       <TouchableOpacity
         disabled={props.hasPrevious === false}
         onPress={props.onPreviousPressed}>
-        <Text>{'< PREV'}</Text>
+        <Text style={{color: props.hasPrevious ? 'black' : 'grey'}}>
+          {'< PREV'}
+        </Text>
       </TouchableOpacity>
       <Text>{props.current_page}</Text>
       <TouchableOpacity
         disabled={props.hasNext === false}
         onPress={props.onNextPressed}>
-        <Text>{'NEXT >'}</Text>
+        <Text style={{color: props.hasNext ? 'black' : 'grey'}}>
+          {'NEXT >'}
+        </Text>
       </TouchableOpacity>
     </View>
   );

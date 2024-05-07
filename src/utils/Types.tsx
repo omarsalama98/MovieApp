@@ -17,6 +17,14 @@ export type Movie = {
   vote_count: number;
 };
 
+export type MovieOpt = {
+  title: string;
+  backdrop_path: string;
+  overview: string;
+  vote_average: number;
+  release_date: string;
+};
+
 export type MoviesResponse = {
   page: number;
   results: Movie[];
@@ -26,7 +34,7 @@ export type MoviesResponse = {
 
 export type RootStackParamList = {
   Movies: undefined;
-  Details: {movie: Movie};
+  Details: {movie: MovieOpt};
 };
 
 export type DetailsScreenNavigationProp = StackScreenProps<

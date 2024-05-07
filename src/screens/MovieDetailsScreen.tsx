@@ -1,6 +1,6 @@
 import React from 'react';
 import {Image, Text, View} from 'react-native';
-import {DetailsScreenNavigationProp, Movie} from '../utils/Types';
+import {DetailsScreenNavigationProp, MovieOpt} from '../utils/Types';
 import {MovieDetailsScreenStyles as styles} from '../styles/Styles';
 import {Dimensions} from 'react-native';
 import Spacer from '../components/Spacer';
@@ -11,7 +11,7 @@ const window_height = Dimensions.get('window').height;
 export default function MovieDetailsScreen({
   route,
 }: DetailsScreenNavigationProp) {
-  const movie: Movie = route.params.movie;
+  const movie: MovieOpt = route.params.movie;
 
   /**
    * A helper function to set the color of the rating text based on its value.

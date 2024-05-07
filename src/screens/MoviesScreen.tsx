@@ -1,73 +1,78 @@
 import React, {useState, useEffect} from 'react';
 import {FlatList, Image, Modal, SafeAreaView, Text} from 'react-native';
-import {Movie, MoviesScreenNavigationProp} from '../utils/Types';
+import {MovieOpt, MoviesScreenNavigationProp} from '../utils/Types';
 import {MoviesScreenStyles as styles} from '../styles/Styles';
 import {TouchableOpacity} from 'react-native-gesture-handler';
-import NetInfo from '@react-native-community/netinfo';
 import Paginator from '../components/Paginator';
 import {fetchMovies} from '../utils/APIHelper';
+import Loading from '../components/Loading';
 
 export default function MoviesScreen({navigation}: MoviesScreenNavigationProp) {
-  const [movies, setMovies] = useState<Movie[]>();
+  const [movies, setMovies] = useState<MovieOpt[]>();
   const [api_error, setAPIError] = useState<string>();
   const [current_page, setCurrentPage] = useState<number>(1);
-  const [is_offline, setIsOffline] = useState<boolean>(false);
-
-  NetInfo.addEventListener(networkState => {
-    setIsOffline(networkState.isConnected === false);
-  });
+  const [fetching_movies, setFetchingMovies] = useState<boolean>(true);
 
   useEffect(() => {
-    fetchMovies()
-      .then(result => {
-        if (typeof result === 'string' || result === undefined) {
-          // There was an error
-          setAPIError(result ?? 'Error in data fetch');
-        } else {
-          setMovies(result);
-        }
-      })
-      .catch(e => {
-        setAPIError(e);
-      });
+    fetchMovies(1, fetched_movies => {
+      if (typeof fetched_movies === 'string' || fetched_movies === undefined) {
+        // There was an error
+        setAPIError(fetched_movies ?? 'Error in data fetch');
+      } else {
+        setMovies(fetched_movies);
+        setFetchingMovies(false);
+      }
+    });
   }, []);
 
   const fetchNextPage = () => {
-    fetchMovies(current_page + 1).then(result => {
-      if (typeof result === 'string' || result === undefined) {
-        setAPIError(result ?? 'Error in data fetch');
+    setFetchingMovies(true);
+    fetchMovies(current_page + 1, fetched_movies => {
+      if (typeof fetched_movies === 'string' || fetched_movies === undefined) {
+        // There was an error
+        setAPIError(fetched_movies ?? 'Error in data fetch');
       } else {
-        setMovies(result);
+        setMovies(fetched_movies);
         setCurrentPage(current_page + 1);
+        setFetchingMovies(false);
       }
     });
   };
 
   const fetchPreviousPage = () => {
-    fetchMovies(current_page - 1)?.then(result => {
-      if (typeof result === 'string' || result === undefined) {
-        setAPIError(result ?? 'Error in data fetch');
+    setFetchingMovies(true);
+    fetchMovies(current_page - 1, fetched_movies => {
+      if (typeof fetched_movies === 'string' || fetched_movies === undefined) {
+        // There was an error
+        setAPIError(fetched_movies ?? 'Error in data fetch');
       } else {
-        setMovies(result);
+        setMovies(fetched_movies);
         setCurrentPage(current_page - 1);
+        setFetchingMovies(false);
       }
     });
   };
 
-  return (
-    <SafeAreaView>
+  return fetching_movies ? (
+    <Loading />
+  ) : (
+    <SafeAreaView style={{flex: 1}}>
       <Modal
-        visible={is_offline || api_error !== undefined}
+        visible={api_error !== undefined}
         style={{
-          backgroundColor: 'white',
           height: '50%',
           width: '80%',
-          alignSelf: 'center',
+          flex: 1,
         }}>
-        <Text>
-          {is_offline
-            ? 'You are Offline, please check your connection'
-            : api_error}
+        <Text
+          style={{
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+          }}>
+          {api_error}
         </Text>
       </Modal>
       <FlatList
@@ -91,7 +96,7 @@ export default function MoviesScreen({navigation}: MoviesScreenNavigationProp) {
       />
       <Paginator
         current_page={current_page}
-        hasNext={is_offline === false}
+        hasNext={true}
         hasPrevious={current_page > 1}
         onNextPressed={fetchNextPage}
         onPreviousPressed={fetchPreviousPage}
